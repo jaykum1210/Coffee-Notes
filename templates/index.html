@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coffee&amp;Notes — Share Notes, Learn Together</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>(function(){ var t=localStorage.getItem('ns-theme-v3')||'light'; document.documentElement.setAttribute('data-theme',t); })();</script>
+</head>
+<body>
+
+<!-- NAVBAR — rendered by JS based on DATA.current_user -->
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/" class="active">Home</a></li>
+      <!-- auth links injected by JS -->
+    </ul>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="hamburger icon-btn" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="flashesMount"></div>
+
+<main>
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-pill">
+        <span class="hero-dot"></span>
+        Student Collaborative Platform
+      </div>
+      <h1 class="hero-title">
+        Share<br>
+        <span class="accent-word">Notes.</span><br>
+        <span class="underline-word">Learn</span> Together.
+      </h1>
+      <p class="hero-desc">
+        Upload your class notes as PDFs, discover what classmates have shared,
+        and download anything you need — completely free.
+      </p>
+
+      <!-- Mobile stats -->
+      <div class="stats-row-mobile">
+        <div class="stat-chip-sm">
+          <div class="num" id="mobileSubjectsCount">0</div>
+          <div class="lbl">Subjects</div>
+        </div>
+        <div class="stat-chip-sm">
+          <div class="num" id="mobileNotesCount">0</div>
+          <div class="lbl">Notes</div>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <form method="GET" action="/">
+        <div class="search-bar">
+          <span class="search-icon-wrap">🔍</span>
+          <input type="text" name="q" id="searchInput"
+            placeholder="Search by title, subject, or student…"
+            autocomplete="off" />
+          <button type="submit">Search</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Desktop stats panel -->
+    <div class="hero-right">
+      <div class="stat-block">
+        <div class="stat-num" id="statSubjects">0</div>
+        <div class="stat-lbl">Subjects</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num" id="statNotes">0</div>
+        <div class="stat-lbl">Notes Shared</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-num">✓</div>
+        <div class="stat-lbl">Always Free</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENT AREA — filled by JS -->
+  <section id="contentArea"></section>
+
+</div>
+</main>
+
+<footer>
+  <span><strong>Coffee&amp;Notes</strong> — Student Collaborative Notes</span>
+  <span>Built with Flask 🐍</span>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
+
+<script>const DATA = {{ data|tojson }};</script>
+<script src="/static/script.js"></script>
+
+<script>
+// ── Index page logic ───────────────────────────────────────────
+(function() {
+  const { subjects, total_notes, total_subjects, search_query, search_results, current_user } = DATA;
+
+  // Populate search input
+  if (search_query) {
+    document.getElementById('searchInput').value = search_query;
+  }
+
+  // Stats counters
+  animateCount(document.getElementById('statSubjects'), total_subjects);
+  animateCount(document.getElementById('statNotes'), total_notes);
+  animateCount(document.getElementById('mobileSubjectsCount'), total_subjects);
+  animateCount(document.getElementById('mobileNotesCount'), total_notes);
+
+  const area = document.getElementById('contentArea');
+
+  if (search_query) {
+    // ── Search results ─────────────────────────────────────────
+    const clearBtn = `<a href="/" class="btn btn-ghost" style="font-size:0.78rem;padding:6px 14px;">✕ Clear</a>`;
+    area.innerHTML = `
+      <div class="sec-head">
+        <span class="sec-head-label">Results for "${escHtml(search_query)}"</span>
+        <span class="sec-head-count">${search_results.length}</span>
+        <span class="sec-head-spacer"></span>
+        ${clearBtn}
+      </div>
+    `;
+
+    if (search_results.length === 0) {
+      area.innerHTML += emptyState('😕', 'Nothing found',
+        'Try a different search term, or upload the notes yourself.',
+        current_user ? `<a href="/upload" class="btn btn-primary btn-lg">+ Upload Note</a>`
+                     : `<a href="/register" class="btn btn-primary btn-lg">Join &amp; Upload</a>`);
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'notes-grid';
+      search_results.forEach(note => { grid.appendChild(makeNoteCard(note, current_user)); });
+      area.appendChild(grid);
+    }
+
+  } else {
+    // ── Subjects grid ──────────────────────────────────────────
+    const uploadBtn = (current_user && subjects.length)
+      ? `<a href="/upload" class="btn btn-primary" style="font-size:0.78rem;padding:7px 16px;">+ Upload</a>` : '';
+
+    area.innerHTML = `
+      <div class="sec-head">
+        <span class="sec-head-label">Browse Subjects</span>
+        ${subjects.length ? `<span class="sec-head-count">${subjects.length}</span>` : ''}
+        <span class="sec-head-spacer"></span>
+        ${uploadBtn}
+      </div>
+    `;
+
+    if (subjects.length === 0) {
+      area.innerHTML += emptyState('📭', 'No notes yet',
+        'Be the first to upload notes and kick off the shared library.',
+        current_user ? `<a href="/upload" class="btn btn-primary btn-xl">✦ Upload First Note</a>`
+                     : `<a href="/register" class="btn btn-primary btn-xl">✦ Join &amp; Upload</a>`);
+    } else {
+      const maxCount = Math.max(...subjects.map(s => s.count));
+      const grid = document.createElement('div');
+      grid.className = 'subjects-grid';
+      subjects.forEach(subj => {
+        const pct = Math.round(subj.count / maxCount * 100);
+        const card = document.createElement('a');
+        card.href = `/subject/${encodeURIComponent(subj.name)}`;
+        card.className = 'subject-card';
+        card.innerHTML = `
+          <span class="sc-arrow">↗</span>
+          <div class="sc-icon-wrap" data-subject-icon="${escHtml(subj.name)}">📒</div>
+          <div class="sc-name">${escHtml(subj.name)}</div>
+          <div class="sc-meta"><strong>${subj.count}</strong> note${subj.count !== 1 ? 's' : ''}</div>
+          <div class="sc-strip">
+            <div class="sc-strip-fill" data-pct="${pct}" style="width:0%"></div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      area.appendChild(grid);
+    }
+  }
+
+  // Init strips after DOM insertion
+  initStrips();
+  stampIcons();
+})();
+</script>
+</body>
+</html>

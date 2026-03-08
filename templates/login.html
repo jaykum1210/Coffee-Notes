@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Coffee&amp;Notes</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>(function(){ var t=localStorage.getItem('ns-theme-v3')||'light'; document.documentElement.setAttribute('data-theme',t); })();</script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <li><a href="/login" class="active">Login</a></li>
+      <li><a href="/register" class="btn-nav-cta">Register</a></li>
+    </ul>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="hamburger icon-btn" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="flashesMount"></div>
+
+<main>
+<div class="page">
+  <div class="auth-page">
+
+    <div class="auth-header">
+      <div class="auth-logo-big">☕</div>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-sub">Log in to upload, share, and manage your notes.</p>
+    </div>
+
+    <div class="form-card">
+      <form method="POST" action="/login" id="loginForm">
+
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <div class="input-row">
+            <span class="input-pfx">👤</span>
+            <input class="form-input" type="text" id="username" name="username"
+              placeholder="your_username" required autocomplete="username" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <div class="input-row input-row--with-sfx">
+            <span class="input-pfx">🔒</span>
+            <input class="form-input" type="password" id="password" name="password"
+              placeholder="••••••••" required autocomplete="current-password" />
+            <button type="button" class="input-sfx toggle-pw" data-target="password" title="Show/hide">👁</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-xl"
+                style="width:100%;justify-content:center;margin-top:8px;">
+          Login →
+        </button>
+
+      </form>
+    </div>
+
+    <p class="auth-switch">
+      Don't have an account? <a href="/register">Register here</a>
+    </p>
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <span><strong>Coffee&amp;Notes</strong> — Student Collaborative Notes</span>
+  <span>Built with Flask 🐍</span>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
+
+<script>const DATA = {{ data|tojson }};</script>
+<script src="/static/script.js"></script>
+</body>
+</html>

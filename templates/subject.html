@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subject Notes — Coffee&amp;Notes</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>(function(){ var t=localStorage.getItem('ns-theme-v3')||'light'; document.documentElement.setAttribute('data-theme',t); })();</script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <!-- auth injected by JS -->
+    </ul>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="hamburger icon-btn" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="flashesMount"></div>
+
+<main>
+<div class="page">
+
+  <nav class="breadcrumb">
+    <a href="/">Home</a>
+    <span class="bc-sep">›</span>
+    <span id="bcSubject"></span>
+  </nav>
+
+  <!-- Subject hero -->
+  <div class="subj-hero">
+    <div class="subj-title-row">
+      <div class="subj-title-l">
+        <div class="subj-icon-box" id="subjIcon">📒</div>
+        <div>
+          <h1 class="subj-h1" id="subjName"></h1>
+          <div class="subj-meta">
+            <span class="badge" id="subjBadge"></span>
+          </div>
+        </div>
+      </div>
+      <div id="subjAction"></div>
+    </div>
+  </div>
+
+  <!-- Notes area -->
+  <div id="notesArea"></div>
+
+</div>
+</main>
+
+<!-- Delete modal -->
+<div class="modal-overlay" id="deleteModal" role="dialog">
+  <div class="modal">
+    <div class="modal-icon">🗑️</div>
+    <h3>Delete this note?</h3>
+    <p>The note and its PDF file will be permanently removed. This can't be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-danger" id="modalConfirm">Delete</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span><strong>Coffee&amp;Notes</strong> — Student Collaborative Notes</span>
+  <span>Built with Flask 🐍</span>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
+
+<script>const DATA = {{ data|tojson }};</script>
+<script src="/static/script.js"></script>
+
+<script>
+(function() {
+  const { subject, notes, current_user } = DATA;
+
+  document.title = subject + ' Notes — Coffee&Notes';
+  document.getElementById('bcSubject').textContent  = subject;
+  document.getElementById('subjName').textContent   = subject;
+  document.getElementById('subjIcon').dataset.subjectIcon = subject;
+  document.getElementById('subjBadge').textContent  = notes.length + ' Note' + (notes.length !== 1 ? 's' : '');
+
+  // Action button
+  document.getElementById('subjAction').innerHTML = current_user
+    ? `<a href="/upload" class="btn btn-primary btn-lg">+ Add Note</a>`
+    : `<a href="/login" class="btn btn-ghost btn-lg">Login to Upload</a>`;
+
+  const area = document.getElementById('notesArea');
+
+  if (notes.length === 0) {
+    area.innerHTML = emptyState('📭', `No notes for ${subject} yet`,
+      'Be the first to contribute notes for this subject!',
+      current_user ? `<a href="/upload" class="btn btn-primary btn-xl">+ Upload Note</a>`
+                   : `<a href="/register" class="btn btn-primary btn-xl">Join &amp; Upload</a>`);
+  } else {
+    area.innerHTML = `
+      <div class="sec-head">
+        <span class="sec-head-label">All Notes</span>
+        <span class="sec-head-count">${notes.length}</span>
+        <span class="sec-head-spacer"></span>
+      </div>
+    `;
+    const grid = document.createElement('div');
+    grid.className = 'notes-grid';
+    notes.forEach(note => { grid.appendChild(makeNoteCard(note, current_user)); });
+    area.appendChild(grid);
+  }
+
+  stampIcons();
+})();
+</script>
+</body>
+</html>

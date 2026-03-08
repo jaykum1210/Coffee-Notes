@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — Coffee&amp;Notes</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>(function(){ var t=localStorage.getItem('ns-theme-v3')||'light'; document.documentElement.setAttribute('data-theme',t); })();</script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <!-- auth injected by JS -->
+    </ul>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="hamburger icon-btn" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="flashesMount"></div>
+
+<main>
+<div class="page">
+
+  <nav class="breadcrumb">
+    <a href="/">Home</a>
+    <span class="bc-sep">›</span>
+    <span id="bcHandle"></span>
+  </nav>
+
+  <!-- Profile hero - filled by JS -->
+  <div id="profileHeroMount"></div>
+
+  <!-- Notes section - filled by JS -->
+  <div id="notesSection"></div>
+
+</div>
+</main>
+
+<!-- Delete modal -->
+<div class="modal-overlay" id="deleteModal" role="dialog">
+  <div class="modal">
+    <div class="modal-icon">🗑️</div>
+    <h3>Delete this note?</h3>
+    <p>The note and its PDF file will be permanently removed. This can't be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-danger" id="modalConfirm">Delete</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span><strong>Coffee&amp;Notes</strong> — Student Collaborative Notes</span>
+  <span>Built with Flask 🐍</span>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
+
+<script>const DATA = {{ data|tojson }};</script>
+<script src="/static/script.js"></script>
+
+<script>
+(function() {
+  const { profile_user: u, notes, is_owner, current_user } = DATA;
+
+  document.title = u.name + ' — Coffee&Notes';
+  document.getElementById('bcHandle').textContent = '@' + u.username;
+
+  // ── Profile hero ────────────────────────────────────────────
+  const avatarHtml = u.avatar
+    ? `<img src="/static/avatars/${escHtml(u.avatar)}" class="profile-avatar" alt="${escHtml(u.name)}" />`
+    : `<div class="profile-avatar-init">${escHtml(u.name[0].toUpperCase())}</div>`;
+
+  const editBtn = is_owner
+    ? `<a href="/profile/edit" class="btn btn-ghost btn-lg profile-edit-btn">✏️ Edit Profile</a>` : '';
+
+  const headlineHtml = u.headline
+    ? `<p class="profile-headline">${escHtml(u.headline)}</p>` : '';
+
+  const aboutHtml = u.about
+    ? `<p class="profile-about">${escHtml(u.about)}</p>` : '';
+
+  document.getElementById('profileHeroMount').innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-hero-inner">
+        <div class="profile-avatar-wrap">${avatarHtml}</div>
+        <div class="profile-info">
+          <div class="profile-name-row">
+            <h1 class="profile-name">${escHtml(u.name)}</h1>
+            <span class="profile-handle">@${escHtml(u.username)}</span>
+          </div>
+          ${headlineHtml}
+          ${aboutHtml}
+          <div class="profile-meta-row">
+            <span class="profile-meta-chip">📅 Joined ${escHtml(u.joined)}</span>
+            <span class="profile-meta-chip">📄 ${notes.length} Note${notes.length !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+        ${editBtn}
+      </div>
+    </div>
+  `;
+
+  // ── Notes section ───────────────────────────────────────────
+  const ns = document.getElementById('notesSection');
+  const sectionLabel = is_owner ? 'My Notes' : escHtml(u.name) + "'s Notes";
+  const uploadBtn = is_owner
+    ? `<a href="/upload" class="btn btn-primary" style="font-size:0.78rem;padding:7px 16px;">+ Upload</a>` : '';
+
+  ns.innerHTML = `
+    <div class="sec-head" style="margin-top:48px;">
+      <span class="sec-head-label">${sectionLabel}</span>
+      ${notes.length ? `<span class="sec-head-count">${notes.length}</span>` : ''}
+      <span class="sec-head-spacer"></span>
+      ${uploadBtn}
+    </div>
+  `;
+
+  if (notes.length === 0) {
+    ns.innerHTML += is_owner
+      ? emptyState('📭', 'No notes yet',
+          'Upload your first note and share your knowledge.',
+          `<a href="/upload" class="btn btn-primary btn-xl">+ Upload Note</a>`)
+      : emptyState('📭', 'No notes yet',
+          escHtml(u.name) + " hasn't uploaded any notes yet.", '');
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'notes-grid';
+    notes.forEach(note => { grid.appendChild(makeNoteCard(note, current_user, is_owner)); });
+    ns.appendChild(grid);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Profile — Coffee&amp;Notes</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>(function(){ var t=localStorage.getItem('ns-theme-v3')||'light'; document.documentElement.setAttribute('data-theme',t); })();</script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <!-- auth injected by JS -->
+    </ul>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="hamburger icon-btn" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="flashesMount"></div>
+
+<main>
+<div class="page">
+  <div class="form-page" style="max-width:640px;">
+
+    <nav class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="bc-sep">›</span>
+      <a href="" id="profileLink"></a>
+      <span class="bc-sep">›</span>
+      <span>Edit Profile</span>
+    </nav>
+
+    <div class="page-header">
+      <div class="page-eyebrow">✦ Your Identity</div>
+      <h1 class="page-title">Edit<br><em>Profile</em></h1>
+    </div>
+
+    <div class="form-card">
+      <form method="POST" action="/profile/edit" enctype="multipart/form-data" id="editProfileForm">
+
+        <!-- Avatar -->
+        <div class="form-group">
+          <label class="form-label">Profile Photo</label>
+          <div class="avatar-upload-row">
+            <div class="avatar-preview" id="avatarPreview"></div>
+            <div class="avatar-upload-info">
+              <label class="btn btn-ghost" for="avatarInput" style="cursor:pointer;">
+                📸 Choose Photo
+              </label>
+              <input type="file" id="avatarInput" name="avatar"
+                     accept="image/png,image/jpeg,image/gif,image/webp"
+                     style="display:none;" />
+              <p class="form-hint">PNG, JPG, GIF or WEBP · Max 3 MB</p>
+              <p class="form-hint" id="avatarFileName"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Name -->
+        <div class="form-group">
+          <label class="form-label" for="name">Display Name</label>
+          <div class="input-row">
+            <span class="input-pfx">✏️</span>
+            <input class="form-input" type="text" id="name" name="name"
+              placeholder="Your full name" maxlength="80" />
+          </div>
+        </div>
+
+        <!-- Headline -->
+        <div class="form-group">
+          <label class="form-label" for="headline">Headline</label>
+          <div class="input-row">
+            <span class="input-pfx">💼</span>
+            <input class="form-input" type="text" id="headline" name="headline"
+              placeholder="e.g. CS Student @ IIT · DSA Enthusiast" maxlength="120" />
+          </div>
+          <p class="form-hint">One line that appears right below your name.</p>
+        </div>
+
+        <!-- About -->
+        <div class="form-group">
+          <label class="form-label" for="about">About</label>
+          <textarea class="form-input form-textarea" id="about" name="about"
+            placeholder="Tell your classmates a bit about yourself…"
+            maxlength="500" rows="4"></textarea>
+          <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+            <span class="form-hint" id="aboutCount">0/500</span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-xl"
+                style="width:100%;justify-content:center;">
+          💾 Save Changes
+        </button>
+
+      </form>
+    </div>
+
+    <div class="tips-box">
+      <div class="tips-box-head">📌 Profile Tips</div>
+      <ul>
+        <li>Add a clear profile photo so classmates recognise you easily.</li>
+        <li>Write a short headline like "2nd Year CS @ MIT" to give context.</li>
+        <li>Your About section can include your interests, skills or study focus.</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <span><strong>Coffee&amp;Notes</strong> — Student Collaborative Notes</span>
+  <span>Built with Flask 🐍</span>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
+
+<script>const DATA = {{ data|tojson }};</script>
+<script src="/static/script.js"></script>
+
+<script>
+(function() {
+  const me = DATA.me;
+  if (!me) return;
+
+  // Breadcrumb profile link
+  const link = document.getElementById('profileLink');
+  link.href = '/profile/' + me.username;
+  link.textContent = '@' + me.username;
+
+  // Pre-fill form fields
+  document.getElementById('name').value     = me.name     || '';
+  document.getElementById('headline').value = me.headline || '';
+  document.getElementById('about').value    = me.about    || '';
+  document.getElementById('aboutCount').textContent = (me.about || '').length + '/500';
+
+  // Avatar preview
+  const preview = document.getElementById('avatarPreview');
+  preview.innerHTML = me.avatar
+    ? `<img src="/static/avatars/${escHtml(me.avatar)}" id="avatarImg"
+           style="width:72px;height:72px;border-radius:50%;border:2px solid var(--ink);
+                  box-shadow:var(--shadow-sm);object-fit:cover;" alt="Current photo" />`
+    : `<div class="avatar-preview-init">${escHtml(me.name[0].toUpperCase())}</div>`;
+})();
+</script>
+</body>
+</html>

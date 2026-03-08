@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Note — Coffee&amp;Notes</title>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;0,9..144,900;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <script>(function(){ var t=localStorage.getItem('ns-theme-v3')||'light'; document.documentElement.setAttribute('data-theme',t); })();</script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-inner">
+    <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="/">Home</a></li>
+      <!-- auth injected by JS -->
+    </ul>
+    <div class="nav-controls">
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="hamburger icon-btn" id="burger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div id="flashesMount"></div>
+
+<main>
+<div class="page">
+  <div class="form-page">
+
+    <nav class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="bc-sep">›</span>
+      <span>Upload Note</span>
+    </nav>
+
+    <div class="page-header">
+      <div class="page-eyebrow">✦ Contribute to the Library</div>
+      <h1 class="page-title">Upload<br><em>Your Notes</em></h1>
+    </div>
+
+    <div class="form-card">
+      <form method="POST" action="/upload" enctype="multipart/form-data" id="uploadForm">
+
+        <div class="form-group">
+          <label class="form-label" for="subject">Subject</label>
+          <div class="input-row">
+            <span class="input-pfx">📚</span>
+            <input class="form-input" type="text" id="subject" name="subject"
+              placeholder="e.g. DSA, Physics, Maths…" required maxlength="80" />
+          </div>
+          <p class="form-hint">Notes with the same subject will be grouped together automatically.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="title">Note Title</label>
+          <div class="input-row">
+            <span class="input-pfx">✏️</span>
+            <input class="form-input" type="text" id="title" name="title"
+              placeholder="e.g. Linked List Basics" required maxlength="120" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">PDF File</label>
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="fileInput" name="file" accept=".pdf" required />
+            <div class="dz-icon-box" id="dzIcon">☁️</div>
+            <div class="dz-heading">Drop your PDF here</div>
+            <div class="dz-sub">or click to browse &nbsp;·&nbsp; PDF only &nbsp;·&nbsp; Max 5 MB</div>
+            <div class="dz-filename" id="dzFilename"></div>
+          </div>
+        </div>
+
+        <!-- "Uploading as" row — filled by JS from DATA.me -->
+        <div class="upload-as-row" id="uploadAsRow"></div>
+
+        <button type="submit" class="btn btn-primary btn-xl"
+                style="width:100%;justify-content:center;">
+          🚀 Upload Note
+        </button>
+
+      </form>
+    </div>
+
+    <div class="tips-box">
+      <div class="tips-box-head">📌 Tips for great notes</div>
+      <ul>
+        <li>Use a clear, descriptive title so classmates can find it easily.</li>
+        <li>Make sure the PDF is legible and well-formatted.</li>
+        <li>Keep file size under 5 MB — compress images if needed.</li>
+        <li>Spell the subject name consistently so notes group correctly.</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+</main>
+
+<footer>
+  <span><strong>Coffee&amp;Notes</strong> — Student Collaborative Notes</span>
+  <span>Built with Flask 🐍</span>
+</footer>
+
+<button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
+
+<script>const DATA = {{ data|tojson }};</script>
+<script src="/static/script.js"></script>
+
+<script>
+(function() {
+  const me = DATA.me;
+  if (!me) return;
+
+  const avatarHtml = me.avatar
+    ? `<img src="/static/avatars/${escHtml(me.avatar)}" class="upload-as-avatar" alt="${escHtml(me.name)}" />`
+    : `<div class="upload-as-init">${escHtml(me.name[0].toUpperCase())}</div>`;
+
+  document.getElementById('uploadAsRow').innerHTML = `
+    <span class="upload-as-label">Uploading as</span>
+    ${avatarHtml}
+    <strong>${escHtml(me.name)}</strong>
+    <span style="color:var(--ink-3);">@${escHtml(me.username)}</span>
+  `;
+})();
+</script>
+</body>
+</html>
