@@ -17,8 +17,6 @@
     <a href="/" class="logo"><div class="logo-box">☕</div> Coffee&amp;Notes</a>
     <ul class="nav-links" id="navLinks">
       <li><a href="/">Home</a></li>
-      <li><a href="/login" class="active">Login</a></li>
-      <li><a href="/register" class="btn-nav-cta">Register</a></li>
     </ul>
     <div class="nav-controls">
       <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
@@ -86,7 +84,7 @@
 
 <button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
 
-<script>const DATA = {{ data|tojson }};</script>
+<script>const DATA = {{ data|tojson }}; DATA.current_page = 'login';</script>
 <script src="/static/script.js"></script>
 </body>
 </html>

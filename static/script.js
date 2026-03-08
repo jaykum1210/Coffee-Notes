@@ -81,28 +81,31 @@ function makeNoteCard(note, current_user, is_owner_of_note) {
 }
 
 // ── Nav renderer ──────────────────────────────────────────────
-function renderNav(current_user) {
+function renderNav(current_user, current_page) {
   const list = document.getElementById('navLinks');
   if (!list) return;
 
-  // Remove existing auth items (keep "Home")
-  Array.from(list.querySelectorAll('li[data-auth]')).forEach(el => el.remove());
+  // Rebuild entirely to prevent duplicates
+  list.innerHTML = '';
+
+  // Home link
+  const homeLi = document.createElement('li');
+  homeLi.innerHTML = `<a href="/" ${current_page === 'home' ? 'class="active"' : ''}>Home</a>`;
+  list.appendChild(homeLi);
 
   if (current_user) {
-    // Upload link
+    // Upload CTA
     const uploadLi = document.createElement('li');
-    uploadLi.dataset.auth = '1';
     uploadLi.innerHTML = `<a href="/upload" class="btn-nav-cta">+ Upload</a>`;
     list.appendChild(uploadLi);
 
-    // User avatar dropdown
+    // Avatar dropdown
     const avatarHtml = current_user.avatar
       ? `<img src="/static/avatars/${escHtml(current_user.avatar)}" class="nav-avatar" alt="${escHtml(current_user.name)}" />`
       : `<div class="nav-avatar-init">${escHtml(current_user.name[0].toUpperCase())}</div>`;
 
     const userLi = document.createElement('li');
     userLi.className = 'nav-user-wrap';
-    userLi.dataset.auth = '1';
     userLi.innerHTML = `
       <button class="nav-user-btn" id="userMenuBtn" type="button">
         ${avatarHtml}
@@ -110,24 +113,27 @@ function renderNav(current_user) {
         <span class="nav-caret">▾</span>
       </button>
       <div class="user-dropdown" id="userDropdown">
-        <a href="/profile/${encodeURIComponent(current_user.username)}">👤 My Profile</a>
-        <a href="/profile/edit">✏️ Edit Profile</a>
+        <a href="/profile/${encodeURIComponent(current_user.username)}">&#128100; My Profile</a>
+        <a href="/profile/edit">&#9999;&#65039; Edit Profile</a>
         <div class="dropdown-divider"></div>
-        <a href="/logout" class="dropdown-danger">↩ Logout</a>
+        <a href="/logout" class="dropdown-danger">&#8617; Logout</a>
       </div>
     `;
     list.appendChild(userLi);
+
   } else {
-    const loginLi = document.createElement('li');
-    loginLi.dataset.auth = '1';
-    loginLi.innerHTML = `<a href="/login">Login</a>`;
-
-    const regLi = document.createElement('li');
-    regLi.dataset.auth = '1';
-    regLi.innerHTML = `<a href="/register" class="btn-nav-cta">Register</a>`;
-
-    list.appendChild(loginLi);
-    list.appendChild(regLi);
+    // Show Login unless already on login page
+    if (current_page !== 'login') {
+      const loginLi = document.createElement('li');
+      loginLi.innerHTML = `<a href="/login" ${current_page === 'login' ? 'class="active"' : ''}>Login</a>`;
+      list.appendChild(loginLi);
+    }
+    // Show Register unless already on register page
+    if (current_page !== 'register') {
+      const regLi = document.createElement('li');
+      regLi.innerHTML = `<a href="/register" class="btn-nav-cta">Register</a>`;
+      list.appendChild(regLi);
+    }
   }
 }
 
@@ -551,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const d = typeof DATA !== 'undefined' ? DATA : {};
 
   // Render nav and flashes from DATA
-  renderNav(d.current_user || null);
+  renderNav(d.current_user || null, d.current_page || '');
   renderFlashes(d.flashes   || []);
 
   // Wire up theme toggle

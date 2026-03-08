@@ -81,7 +81,7 @@
 
 <button class="scroll-top" id="scrollTop" aria-label="Back to top">↑</button>
 
-<script>const DATA = {{ data|tojson }};</script>
+<script>const DATA = {{ data|tojson }}; DATA.current_page = 'subject';</script>
 <script src="/static/script.js"></script>
 
 <script>

@@ -1,3 +1,8 @@
+"""
+Coffee&Notes — Flask backend
+All templates receive data as a single JSON blob.
+Jinja2 usage in templates is limited to url_for() and one {{ data|tojson }}.
+"""
 
 import os, json, uuid, datetime
 from functools import wraps
